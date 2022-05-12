@@ -1,5 +1,5 @@
 
-import argparse,websockets,asyncio,os,json
+import argparse,websockets,asyncio,os,json,time
 #import the board
 from board import Board
 
@@ -33,15 +33,26 @@ class Connection():
     
     async def start_the_connection(self):
         while True:
-            async with websockets.connect(self.url_to_connect) as ws:
-                await conexion.check_the_data_received(ws)
-        
+            try:
+                async with websockets.connect(self.url_to_connect) as ws:
+                    await conexion.check_the_data_received(ws)
+                      
+            except Exception as e:
+                print(f"connection error: {e}")
+                
+                
+                
     async def check_the_data_received(self,ws):
         while True:
+            #time.sleep(1)
+            #os.system('cls' if os.name == 'nt' else 'clear')
+            start = time.time()
             try:
-                #self.request will be a string
-                self.request = await ws.recv()
                 
+                #self.request will be a string
+                print("waiting")
+                self.request = await ws.recv()
+                print("something came!")
                 
                 #convert self.request to a json and put it in request_data
                 request_data =json.loads(self.request)
@@ -58,38 +69,60 @@ class Connection():
                     }
                     await conexion.send_data(ws)
                 
+                elif request_data['event'] == 'list_users':
+                    print(f"users connected:::{request_data['data']['users']}:::")
+                    
+                
                 #logic for make a movement 
-                if request_data['event'] == 'your_turn':
+                elif request_data['event'] == 'your_turn':
+                    play_sta = time.time()
+                    
                     board= Board(request_data['data'])
-
                     board.create_board()
                     board.populates_board()
                     board.posible_movements()
                     board.chose_movement()
                     self.my_answer = board.make_movement()
                     await conexion.send_data(ws)
+                    
+                    play_end = time.time()
+                    print(f"time for make a play: {play_end-play_sta}")
+                    
 
                 
-                if request_data['event'] == 'game_over':
+                elif request_data['event'] == 'game_over':
+                    print(f"game over,ID: {request_data['data']['game_id']}")
                     pass
                 
-                if request_data['event'] == 'update_user_list':
-                    pass
+                elif request_data['event'] == 'update_user_list':
+                    print(f"update:::{request_data['data']}:::")
+                
+                #put this to see if there is any other data that i am receiving
+                else:
+                    print(request_data)
+
+
                 
             except Exception as e:
                 print(f"{e}")
                 break
-     
+            
+            end = time.time()    
+            print(f"time for communication: {end-start}")
+
+            
     #logic where i send the data to the server, where i accept a challenge or make a movement     
     async def send_data(self,ws):
+        
         answer = json.dumps(
             {
                 'action': self.my_answer['action'],
                 'data': self.my_answer['data'],
             
         })
-        print(f"what i send: {answer}")
+        #print(f"what i send: {answer}")
         await ws.send(answer)
+        self.my_answer = {}
         
 
             

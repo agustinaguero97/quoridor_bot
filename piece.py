@@ -13,6 +13,7 @@ class Piece():
         self.left_edge = False
         self.right_edge = False
         self.top_edge = False
+        self.bottom_edge = False
         self.wall_direction = ''
         
         if self.pawn:
@@ -38,6 +39,11 @@ class Piece():
             self.top_edge = True
         else:
             self.top_edge = False
+        
+        if self.row == ROWS:
+            self.bottom_edge = True
+        else:
+            self.bottom_edge = False
             
         if self.col == COLS:
             self.right_edge = True
@@ -48,6 +54,7 @@ class Piece():
             self.left_edge = True
         else:
             self.left_edge = False
+        
         
         
     def __repr__(self):
