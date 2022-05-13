@@ -17,7 +17,7 @@ class Piece():
         self.wall_direction = ''
         
         if self.pawn:
-            Piece.check_pawn_border_position(self)
+            self.check_pawn_border_position()
             
         if self.wall:
             if self.type_name == '-':
@@ -30,7 +30,7 @@ class Piece():
     def move(self,row,col):
         self.row = row
         self.col = col
-        Piece.check_pawn_border_position(self)
+        self.check_pawn_border_position()
     
     def check_pawn_border_position(self):
         #if the object is a pawn, check if it is in any border except the botom

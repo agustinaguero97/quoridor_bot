@@ -1,6 +1,5 @@
 
 from cmath import inf
-from click import pass_context
 import numpy,json,time,random
 
 from piece import  Piece
@@ -22,6 +21,7 @@ class Board():
         self.board_string = data['board']
         self.board = []
         self.my_pawns = []
+        self.opponent_pawns = []
         self.dic_of_posible_movements = {}
         self.action = ''
         self.data = ''
@@ -53,7 +53,9 @@ class Board():
                     #check if this pawn is in my side 
                     if col == self.side:
                         self.my_pawns.append(self.board[x][y])
-                        
+                    else:
+                        self.opponent_pawns.append(self.board[x][y])
+
                 elif col == '-' or col == '|' or col == '*':
                     self.board[x][y] = Piece(x,y,col,False,True,False)
                     continue
@@ -75,9 +77,17 @@ class Board():
         else:
             return 2**int((pawn.row+(self.direction_of_movement*2))/2)
     
-    def check_mov_jump(self,row,col):
+    
+    
+    def check_mov_jump_foward(self,row,col,pawn):
         if not (self.board[row][col].bottom_edge or self.board[row][col].top_edge):
-            Board.check_mov_foward(self,self.board[row][col])
+            
+            if self.board[row+self.direction_of_movement][col].wall == False:
+                #if it is an empty space
+                if self.board[row+(self.direction_of_movement*2)][col].empty == True:
+                    self.count += 1
+                    self.dic_of_this_pawn_mov[self.count]  ={'row':row+(self.direction_of_movement*2), 'col':col,'score':Board.score(self,pawn),'pawn':pawn}
+                    
 
                 
             
@@ -93,7 +103,7 @@ class Board():
                     
                 #if it is a pawn
                 elif self.board[pawn.row+(self.direction_of_movement*2)][pawn.col].pawn == True:
-                    Board.check_mov_jump(self,pawn.row+(self.direction_of_movement*2),pawn.col)
+                    Board.check_mov_jump_foward(self,pawn.row+(self.direction_of_movement*2),pawn.col,pawn)
 
                 
     def check_mov_left(self,pawn):
@@ -103,17 +113,39 @@ class Board():
                 if self.board[pawn.row][pawn.col-2].empty == True:
                     self.count += 1
                     self.dic_of_this_pawn_mov[self.count] ={'row':pawn.row,'col':pawn.col-2,'score':0,'pawn':pawn}
+                    
+                elif self.board[pawn.row][pawn.col-2].pawn == True:
+                    Board.check_jump_left(self,self.board[pawn.row][pawn.col-2],pawn)
+                    
+    def check_jump_left(self,pawn_to_jump,pawn):
+        if not pawn_to_jump.left_edge:
+            if self.board[pawn_to_jump.row][pawn_to_jump.col-1].wall == False:
+                if self.board[pawn_to_jump.row][pawn_to_jump.col-2].empty == True:
+                    self.count += 1
+                    self.dic_of_this_pawn_mov[self.count] ={'row':pawn_to_jump.row,'col':pawn_to_jump.col-2,'score':2,'pawn':pawn}
+        
                 
     
     def check_mov_right(self,pawn):
+
         #check if it is posible move to the right
         if not pawn.right_edge:
-            if self.board[pawn.row][pawn.col+1].wall == False:
-                if self.board[pawn.row][pawn.col+2].empty == True:
+            if self.board[pawn.row][pawn.col+(1)].wall == False:
+                if self.board[pawn.row][pawn.col+(1*2)].empty == True:
                     self.count += 1
-                    self.dic_of_this_pawn_mov[self.count]={'row':pawn.row, 'col':pawn.col+2,'score':0,'pawn':pawn} 
+                    self.dic_of_this_pawn_mov[self.count]={'row':pawn.row, 'col':pawn.col+(1*2),'score':0,'pawn':pawn}
+                    
+                elif  self.board[pawn.row][pawn.col+(1*2)].pawn == True:
+                    
+                    Board.check_jump_left(self,self.board[pawn.row][pawn.col+(1*2)],pawn)
+
                                      
-        
+    def check_jump_right(self,pawn_to_jump,pawn):
+        if not pawn_to_jump.left_edge:
+            if self.board[pawn_to_jump.row][pawn_to_jump.col+(1)].wall == False:
+                if self.board[pawn_to_jump.row][pawn_to_jump.col+(1*2)].empty == True:
+                    self.count += 1
+                    self.dic_of_this_pawn_mov[self.count] ={'row':pawn_to_jump.row,'col':pawn_to_jump.col+(1*2),'score':2,'pawn':pawn}
 
     #all posbile movments for my side, breaks if some pawn is in an edge
     def posible_movements(self):
@@ -130,32 +162,41 @@ class Board():
             Board.check_mov_right(self,pawn)
  
 
-
             self.dic_of_posible_movements[pawn] = self.dic_of_this_pawn_mov
             
+        #for k1,v1 in self.dic_of_posible_movements.items():
+        #    print(k1)
+        #    for k2,v2 in v1.items():
+        #        print(k2,v2)
         
     def chose_movement(self):
         max = -inf
+        best_moves = []
         for k1,v1 in self.dic_of_posible_movements.items():
             for k2,v2 in v1.items():
                 if max < v2['score']:
                     max = v2['score']
                     best_mov = v2
-                    best_pawn = k1
+                if max == v2['score']:
+                    best_moves.append(best_mov)
+        if len(best_moves) > 1:
+            best_mov = random.choice(best_moves)
 
 
 
+        best_pawn = best_mov['pawn']
         actual_row ,actual_col =best_pawn.row, best_pawn.col
-        print(f"{best_pawn} from  {actual_row},{actual_col} to {best_mov['row']},{best_mov['col']}")
-        self.board[actual_row][actual_col], self.board[best_mov['row']][best_mov['col']] = self.board[best_mov['row']][best_mov['col']],self.board[actual_row][actual_col]
-        best_pawn.move(best_mov['row'],best_mov['col'])
+        new_row,new_col = best_mov['row'] , best_mov['col']
+        print(f"{best_pawn} from  {actual_row},{actual_col} to {new_row},{new_col}")
+        self.board[actual_row][actual_col], self.board[new_row][new_col] = self.board[new_row][new_col],self.board[actual_row][actual_col]
+        best_pawn.move(new_row,new_col)
         
         self.data = {'game_id':self.game_id,
                      'turn_token': self.turn_token,
                      'from_row': actual_row/2,
                      'from_col': actual_col/2,
-                     'to_row': best_mov['row']/2,
-                     'to_col': best_mov['col']/2,}
+                     'to_row': new_row/2,
+                     'to_col': new_col/2,}
         self.action = 'move'
     
     
@@ -165,16 +206,17 @@ class Board():
 
     
 if __name__ == '__main__':
-    data = {"board": "  N     N     N                                                                                                                                                                                                                                                              -*-  S     S     S  ",
-	 "walls": 10.0,
-	 "player_2": "agustin1997aguero@gmail.com",
-	 "remaining_moves": 195.0,
-	 "score_2": -20.0,
-	 "player_1": "enzocrespillo@gmail.com",
-	 "score_1": 9.0,
-	 "side": "S",
-	 "turn_token": "d54c5620-ba0d-4703-8858-bcf1146eadb2",
-	 "game_id": "a27c7f1e-cd8c-11ec-aef0-7ecdf393f9cc"}
+    data = {
+        "board": '                                                N                     N     N                           S                                                                                                                                                                               S     S  ',
+	    "walls": 10.0,
+	    "player_2": "agustin1997aguero@gmail.com",
+	    "remaining_moves": 195.0,
+	    "score_2": -20.0,
+	    "player_1": "enzocrespillo@gmail.com",
+	    "score_1": 9.0,
+	    "side": "S",
+	    "turn_token": "d54c5620-ba0d-4703-8858-bcf1146eadb2",
+	    "game_id": "a27c7f1e-cd8c-11ec-aef0-7ecdf393f9cc"}
     board = Board(data)
     board.create_board()
     board.populates_board()
