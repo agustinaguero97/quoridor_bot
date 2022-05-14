@@ -2,11 +2,10 @@
 from cmath import inf
 import numpy,json,time,random
 
-from piece import  Piece
+from piece import  Wall,Pawn,Empty
 
 
 class Board():
-
     
     def __init__(self,data):
         self.player_1 = data['player_1']
@@ -46,106 +45,25 @@ class Board():
     #make every element of the matrix into a object telling if it is empty,wall or pawn
     def populates_board(self):
         for x,row in enumerate(self.board):
-            for y,col in enumerate(row):
-                if col == 'N' or col == 'S':
-                    self.board[x][y] = Piece(x,y,col,True,False,False)
+            for y,piece in enumerate(row):
+                if piece == 'N' or piece == 'S':
+                    self.board[x][y] = Pawn(x,y,piece)
                     
                     #check if this pawn is in my side 
-                    if col == self.side:
+                    if piece == self.side:
                         self.my_pawns.append(self.board[x][y])
                     else:
                         self.opponent_pawns.append(self.board[x][y])
 
-                elif col == '-' or col == '|' or col == '*':
-                    self.board[x][y] = Piece(x,y,col,False,True,False)
+                elif piece == '-' or piece == '|' or piece == '*':
+                    self.board[x][y] = Wall(x,y,piece)
                     continue
-                elif col == ' ':
-                    self.board[x][y] = Piece(x,y,col,False,False,True)
+                elif piece == ' ':
+                    self.board[x][y] = Empty(x,y,piece)
                     continue
                 
         for row in self.board:
             print(row)
-    
-    #dont have any use yet
-    def get_piece(self,row,col):
-        return self.board[row][col]
-    
-    #calculate the score of the movement
-    def score(self,pawn):
-        if self.direction_of_movement == -1:
-            return  2**(8-int((pawn.row+(self.direction_of_movement*2))/2))
-        else:
-            return 2**int((pawn.row+(self.direction_of_movement*2))/2)
-    
-    
-    
-    def check_mov_jump_foward(self,row,col,pawn):
-        if not (self.board[row][col].bottom_edge or self.board[row][col].top_edge):
-            
-            if self.board[row+self.direction_of_movement][col].wall == False:
-                #if it is an empty space
-                if self.board[row+(self.direction_of_movement*2)][col].empty == True:
-                    self.count += 1
-                    self.dic_of_this_pawn_mov[self.count]  ={'row':row+(self.direction_of_movement*2), 'col':col,'score':Board.score(self,pawn),'pawn':pawn}
-                    
-
-                
-            
-
-        
-    def check_mov_foward(self,pawn):
-            #if it is a wall
-            if self.board[pawn.row+self.direction_of_movement][pawn.col].wall == False:
-                #if it is an empty space
-                if self.board[pawn.row+(self.direction_of_movement*2)][pawn.col].empty == True:
-                    self.count += 1
-                    self.dic_of_this_pawn_mov[self.count]  ={'row':pawn.row+(self.direction_of_movement*2), 'col':pawn.col,'score':Board.score(self,pawn),'pawn':pawn}
-                    
-                #if it is a pawn
-                elif self.board[pawn.row+(self.direction_of_movement*2)][pawn.col].pawn == True:
-                    Board.check_mov_jump_foward(self,pawn.row+(self.direction_of_movement*2),pawn.col,pawn)
-
-                
-    def check_mov_left(self,pawn):
-        #check if it is posible move to the left
-        if not pawn.left_edge:
-            if self.board[pawn.row][pawn.col-1].wall == False:
-                if self.board[pawn.row][pawn.col-2].empty == True:
-                    self.count += 1
-                    self.dic_of_this_pawn_mov[self.count] ={'row':pawn.row,'col':pawn.col-2,'score':0,'pawn':pawn}
-                    
-                elif self.board[pawn.row][pawn.col-2].pawn == True:
-                    Board.check_jump_left(self,self.board[pawn.row][pawn.col-2],pawn)
-                    
-    def check_jump_left(self,pawn_to_jump,pawn):
-        if not pawn_to_jump.left_edge:
-            if self.board[pawn_to_jump.row][pawn_to_jump.col-1].wall == False:
-                if self.board[pawn_to_jump.row][pawn_to_jump.col-2].empty == True:
-                    self.count += 1
-                    self.dic_of_this_pawn_mov[self.count] ={'row':pawn_to_jump.row,'col':pawn_to_jump.col-2,'score':2,'pawn':pawn}
-        
-                
-    
-    def check_mov_right(self,pawn):
-
-        #check if it is posible move to the right
-        if not pawn.right_edge:
-            if self.board[pawn.row][pawn.col+(1)].wall == False:
-                if self.board[pawn.row][pawn.col+(1*2)].empty == True:
-                    self.count += 1
-                    self.dic_of_this_pawn_mov[self.count]={'row':pawn.row, 'col':pawn.col+(1*2),'score':0,'pawn':pawn}
-                    
-                elif  self.board[pawn.row][pawn.col+(1*2)].pawn == True:
-                    
-                    Board.check_jump_left(self,self.board[pawn.row][pawn.col+(1*2)],pawn)
-
-                                     
-    def check_jump_right(self,pawn_to_jump,pawn):
-        if not pawn_to_jump.left_edge:
-            if self.board[pawn_to_jump.row][pawn_to_jump.col+(1)].wall == False:
-                if self.board[pawn_to_jump.row][pawn_to_jump.col+(1*2)].empty == True:
-                    self.count += 1
-                    self.dic_of_this_pawn_mov[self.count] ={'row':pawn_to_jump.row,'col':pawn_to_jump.col+(1*2),'score':2,'pawn':pawn}
 
     #all posbile movments for my side, breaks if some pawn is in an edge
     def posible_movements(self):
@@ -155,20 +73,100 @@ class Board():
             
             Board.check_mov_foward(self,pawn)
 
-
             Board.check_mov_left(self,pawn)
-
                 
             Board.check_mov_right(self,pawn)
- 
 
             self.dic_of_posible_movements[pawn] = self.dic_of_this_pawn_mov
             
-        #for k1,v1 in self.dic_of_posible_movements.items():
-        #    print(k1)
-        #    for k2,v2 in v1.items():
-        #        print(k2,v2)
+        for k1,v1 in self.dic_of_posible_movements.items():
+            for k2,v2 in v1.items():
+                print(k2,v2)
+                
+    def get_piece(self,row,col):
+        return self.board[row][col]
+    
+    #calculate the score of the movement
+    def score(self,pawn):
+        if self.direction_of_movement == -1:
+            return  2**(8-int((pawn.row+(self.direction_of_movement*2))/2))
+        else:
+            return 2**int((pawn.row+(self.direction_of_movement*2))/2)
         
+    def check_mov_foward(self,pawn):
+        piece = self.get_piece(pawn.row+self.direction_of_movement,pawn.col)
+        
+        #if the foward move is a wall or empty space
+        #if self.board[pawn.row+self.direction_of_movement][pawn.col].type == 'empty':
+        if piece.type == 'empty':
+            piece = self.get_piece(pawn.row+(self.direction_of_movement*2),pawn.col)
+            #if it is an empty space
+            if piece.type == 'empty':
+                self.count += 1
+                self.dic_of_this_pawn_mov[self.count]  ={'row':piece.row, 'col':piece.col,'score':Board.score(self,piece),'pawn':pawn}
+                
+            #if it is a pawn and its not one of my pawns
+            elif piece.type == 'pawn' and piece.name != self.side:
+                Board.check_mov_jump_foward(self,piece,pawn)
+                
+    def check_mov_jump_foward(self,piece,pawn):
+
+        if not (piece.bottom_edge or piece.top_edge):
+            
+            piece_to_jump = self.get_piece(piece.row+self.direction_of_movement,piece.col)
+            #check if the next  wall space is empty
+            if piece_to_jump.type == 'empty':
+                #if it is an empty space
+                
+                piece_to_jump = self.get_piece(piece.row+(self.direction_of_movement*2),piece.col)
+                
+                if piece_to_jump.type == 'empty':
+                    self.count += 1
+                    self.dic_of_this_pawn_mov[self.count]  ={'row':piece_to_jump.row, 'col':piece_to_jump.col,'score':Board.score(self,piece_to_jump),'pawn':pawn}
+
+                
+    def check_mov_left(self,pawn):
+        #check if it is posible move to the left
+        if not pawn.left_edge:
+            if self.board[pawn.row][pawn.col-1].type == 'empty':
+                if self.board[pawn.row][pawn.col-2].type == 'empty':
+                    self.count += 1
+                    self.dic_of_this_pawn_mov[self.count] ={'row':pawn.row,'col':pawn.col-2,'score':0,'pawn':pawn}
+                    
+                elif self.board[pawn.row][pawn.col-2].type == 'pawn':
+                    Board.check_jump_left(self,self.board[pawn.row][pawn.col-2],pawn)
+                    
+                    
+    def check_jump_left(self,pawn_to_jump,pawn):
+        if not pawn_to_jump.left_edge:
+            if self.board[pawn_to_jump.row][pawn_to_jump.col-1].type== 'empty':
+                if self.board[pawn_to_jump.row][pawn_to_jump.col-2].type == 'empty':
+                    self.count += 1
+                    self.dic_of_this_pawn_mov[self.count] ={'row':pawn_to_jump.row,'col':pawn_to_jump.col-2,'score':2,'pawn':pawn}
+        
+                
+    
+    def check_mov_right(self,pawn):
+        #check if it is posible move to the right
+        if not pawn.right_edge:
+            if self.board[pawn.row][pawn.col+(1)].type == 'empty':
+                if self.board[pawn.row][pawn.col+(1*2)].type == 'empty':
+                    self.count += 1
+                    self.dic_of_this_pawn_mov[self.count]={'row':pawn.row, 'col':pawn.col+(1*2),'score':0,'pawn':pawn}
+                    
+                elif  self.board[pawn.row][pawn.col+(1*2)].type == 'pawn':
+                    
+                    Board.check_jump_left(self,self.board[pawn.row][pawn.col+(1*2)],pawn)
+
+                                     
+    def check_jump_right(self,pawn_to_jump,pawn):
+        if not pawn_to_jump.left_edge:
+            if self.board[pawn_to_jump.row][pawn_to_jump.col+(1)].type== 'empty':
+                if self.board[pawn_to_jump.row][pawn_to_jump.col+(1*2)].type == 'empty':
+                    self.count += 1
+                    self.dic_of_this_pawn_mov[self.count] ={'row':pawn_to_jump.row,'col':pawn_to_jump.col+(1*2),'score':2,'pawn':pawn}
+
+    
     def chose_movement(self):
         max = -inf
         best_moves = []

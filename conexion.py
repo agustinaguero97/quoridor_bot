@@ -80,35 +80,35 @@ class Connection():
                     board.posible_movements()
                     board.chose_movement()
                     self.my_answer = board.make_movement()
-                    await conexion.send_data(ws)
+                    
+                    #a fundamental line, wihout the del, it will break
+                    del board
                     
                     play_end = time.time()
                     print(f"time for make a play: {play_end-play_sta}")
-
-
+                    
+                    await conexion.send_data(ws)
+                    
+                    end = time.time()    
+                    print(f"time for communication: {end-start}")     
+                    
                 
                 elif request_data['event'] == 'game_over':
                     print(f"game over,ID: {request_data['data']['game_id']}")
-                    pass
+                    
                 
                 elif request_data['event'] == 'update_user_list':
                     print(f"update:::{request_data['data']}:::")
-                    pass
+                    
                 
                 #put this to see if there is any other data that i am receiving
                 else:
                     print(request_data)
-                    pass
-
-
+                    
                 
             except Exception as e:
                 print(f"{e}")
                 break
-            
-            end = time.time()    
-            print(f"time for communication: {end-start}")
-            
             
     #logic where i send the data to the server, where i accept a challenge or make a movement     
     async def send_data(self,ws):
