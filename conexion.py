@@ -2,6 +2,8 @@
 import argparse,websockets,asyncio,os,json,time
 #import the board
 from board import Board
+from bot import Bot
+
 
 #the token enter as an argument returns it as a variable, make sure that at lest has the len() of a token
 def token_parser():
@@ -74,24 +76,27 @@ class Connection():
                 elif request_data['event'] == 'your_turn':
                     play_sta = time.time()
                     
-                    board= Board(request_data['data'])
+                    bot = Bot(request_data['data'])
+                    board = Board(bot.walls,bot.side,bot.board_string)
                     board.create_board()
                     board.populates_board()
                     board.posible_movements()
-                    board.chose_movement()
-                    self.my_answer = board.make_movement()
+                    bot.dic_of_posible_movements = board.dic_of_posible_movements
+                    bot.chose_movement()
+                    self.my_answer=bot.make_movement()
                     
-                    #a fundamental line, wihout the del, it will break
+                    #a fundamental line, wihout the del, it will break 
                     del board
+                    del bot
                     
                     play_end = time.time()
                     print(f"time for make a play: {play_end-play_sta}")
+                    
                     
                     await conexion.send_data(ws)
                     
                     end = time.time()    
                     print(f"time for communication: {end-start}")     
-                    
                 
                 elif request_data['event'] == 'game_over':
                     print(f"game over,ID: {request_data['data']['game_id']}")
@@ -103,8 +108,7 @@ class Connection():
                 
                 #put this to see if there is any other data that i am receiving
                 else:
-                    print(request_data)
-                    
+                    print(request_data)                  
                 
             except Exception as e:
                 print(f"{e}")
