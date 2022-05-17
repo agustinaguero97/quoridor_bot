@@ -20,8 +20,7 @@ def token_parser():
 class Connection():
     
     def __init__(self,player_token):
-        self.player_token = player_token
-        self.url_to_connect = f"wss://4yyity02md.execute-api.us-east-1.amazonaws.com/ws?token={self.player_token}"
+        self.url_to_connect = f"wss://4yyity02md.execute-api.us-east-1.amazonaws.com/ws?token={player_token}"
         
         #i dont know if this argument can be change in the middle of use, making wrong answers to a board
         #like working with forks, change the information of the argument when i dont want to
@@ -33,9 +32,9 @@ class Connection():
         while True:
             try:
                 async with websockets.connect(self.url_to_connect) as ws:
-                    #print(f"conecting to {self.url_to_connect}")
+                    print(f"conecting to {self.url_to_connect}")
                     await self.check_the_data_received(ws)
-                      
+
             except Exception as e:
                 print(f"connection error: {e}")
                 
@@ -43,19 +42,17 @@ class Connection():
                 
     async def check_the_data_received(self,ws):
         while True:
-            #time.sleep(1)
+            #clean the terminal
             #os.system('cls' if os.name == 'nt' else 'clear')
-            start = time.time()
+            #time.sleep(1)
+            
             try:
-                
-                #self.request will be a string
-                print("waiting")
+                #the time it takes to receive something its absurd some times
                 self.request = await ws.recv()
-                print("something came!")
+
                 
-                #convert self.request to a json and put it in request_data
+                #convert the string self.request to a json and put it in request_data
                 request_data =json.loads(self.request)
-                #print(f"what i receive{self.request}")
                 
                 
                 #logic for acept a challenge
@@ -74,30 +71,25 @@ class Connection():
                 
                 #logic for make a movement 
                 elif request_data['event'] == 'your_turn':
-                    play_sta = time.time()
+                    #play_sta = time.time()
                     
                     bot = Bot(request_data['data'])
-                    board = Board(bot.walls,bot.side,bot.board_string)
+                    board = Board(bot.walls,bot.side,bot.board_string,bot.score_1,bot.score_2)
                     board.create_board()
                     board.populates_board()
-                    board.posible_movements()
+                    board.posible_pawn_movements()
+                    board.posible_wall_placement()
                     bot.dic_of_posible_movements = board.dic_of_posible_movements
                     bot.chose_movement()
                     self.my_answer=bot.make_movement()
+                    del board,bot
                     
-                    #a fundamental line, wihout the del, it will break 
-                    del board
-                    del bot
+                    #play_end = time.time()
+                    #print(f"time for make a play: {play_end-play_sta}")
                     
-                    play_end = time.time()
-                    print(f"time for make a play: {play_end-play_sta}")
-                    
-                    
+
                     await conexion.send_data(ws)
-                    
-                    end = time.time()    
-                    print(f"time for communication: {end-start}")     
-                
+
                 elif request_data['event'] == 'game_over':
                     print(f"game over,ID: {request_data['data']['game_id']}")
                     
@@ -105,11 +97,7 @@ class Connection():
                 elif request_data['event'] == 'update_user_list':
                     print(f"update:::{request_data['data']}:::")
                     
-                
-                #put this to see if there is any other data that i am receiving
-                else:
-                    print(request_data)                  
-                
+            
             except Exception as e:
                 print(f"{e}")
                 break
@@ -123,9 +111,7 @@ class Connection():
                 'data': self.my_answer['data'],
             
         })
-        #print(f"what i send: {answer}")
         await ws.send(answer)
-        self.my_answer = {}
         
 
             

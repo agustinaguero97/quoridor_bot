@@ -1,6 +1,5 @@
-#here the bot should choose one movement from all the ones that Board class allow
+#here the bot should choose one movement from all the ones that Board class creates
 from board import Board
-import numpy,random
 from cmath import inf
 class Bot():
     def __init__(self,data):
@@ -17,56 +16,51 @@ class Bot():
         self.data = {}
         self.action = ''
         self.dic_of_posible_movements = {}
-        self.tablero = []
         print(self.remaining_moves)
-        
-        
-
-
-        
+        print(self.player_1,self.player_2)
         
     def chose_movement(self):
         max = -inf
-        best_moves = []
+        best_mov = ""
         for k1,v1 in self.dic_of_posible_movements.items():
-            for k2,v2 in v1.items():
-                if max < v2['score']:
-                    max = v2['score']
-                    best_mov = v2
-                elif max == v2['score']:
-                    best_moves.append(best_mov)
-        if len(best_moves) > 1:
-            best_mov = random.choice(best_moves)
+            if max < v1['score']:
+                max = v1['score']
+                best_mov = v1
 
 
-        print(best_mov)
-        best_pawn = best_mov['pawn']
-        actual_row ,actual_col =best_pawn.row, best_pawn.col
-        new_row,new_col = best_mov['row'] , best_mov['col']
-        print(f"{best_pawn} from  {actual_row},{actual_col} to {new_row},{new_col}")
-        
-        
-        
-        """self.board[actual_row][actual_col], self.board[new_row][new_col] = self.board[new_row][new_col],self.board[actual_row][actual_col]
-        
-        empty_space = self.get_piece(new_row,new_col)
-        best_pawn.move(new_row,new_col)
-        empty_space.move(actual_row,actual_col)"""
-        
-        self.data = {'game_id':self.game_id,
-                     'turn_token': self.turn_token,
-                     'from_row': actual_row/2,
-                     'from_col': actual_col/2,
-                     'to_row': new_row/2,
-                     'to_col': new_col/2,}
+        if best_mov['action'] == 'wall':
+            self.action = 'wall'
+            self.data = {'game_id':self.game_id,
+                        'turn_token': self.turn_token,
+                        'row': (best_mov['row'])/2,
+                        'col': (best_mov['col'])/2,
+                        'orientation': best_mov['orientation'],
+                }
+            print (f"action: wall in ({best_mov['row']/2},{(best_mov['col'])/2})")
+            print(best_mov['score'])
+            return
+        if best_mov['action'] == 'move':
+            
+            best_pawn = best_mov['pawn']
+            actual_row ,actual_col =best_pawn.row, best_pawn.col
+            new_row,new_col = best_mov['row'] , best_mov['col']
+            print(f"{best_pawn} from  {actual_row},{actual_col} to {new_row},{new_col}")
 
-        self.action = 'move'
-        return actual_row,actual_col,new_row,new_col
-    
-    
+            
+            self.data = {'game_id':self.game_id,
+                        'turn_token': self.turn_token,
+                        'from_row': actual_row/2,
+                        'from_col': actual_col/2,
+                        'to_row': new_row/2,
+                        'to_col': new_col/2,}
+            self.action = 'move'
+
     def make_movement(self):
-        if self.action == 'move':
-            return {'action':self.action, 'data': self.data}
+        #for k1,v1 in self.dic_of_posible_movements.items():
+        #    print(k1,v1)
+        #print({self.action})
+        #print(self.data)
+        return {'action':self.action, 'data': self.data}
 
         
     
@@ -86,16 +80,17 @@ if __name__ == '__main__':
     
     bot = Bot(data)
 
-    board = Board(bot.walls,bot.side,bot.board_string)
+    board = Board(bot.walls,bot.side,bot.board_string,bot.score_1,bot.score_2)
     board.create_board()
     board.populates_board()
-    board.posible_movements()
+    board.posible_pawn_movements()
+    board.posible_wall_placement()
     bot.dic_of_posible_movements = board.dic_of_posible_movements
-    actual_row,actual_col,new_row,new_col = bot.chose_movement()
-    board.update_board(actual_row,actual_col,new_row,new_col)
-    respuesta =bot.make_movement()
+    bot.chose_movement()
+    #board.update_board(actual_row,actual_col,new_row,new_col)
+    bot.make_movement()
+
     del board
     del bot
-    print(respuesta)
 
 

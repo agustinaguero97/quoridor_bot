@@ -8,41 +8,36 @@ class Pawn():
         self.row = row
         self.col = col
         self.name = name
-        self.type = 'pawn'
-        self.top_edge = False
-        self.bottom_edge = False
-        self.right_edge = False
-        self.left_edge = False
-        self.check_pawn_border_position()
+        self.top_edge = True if self.row == 0 else False
+        self.bottom_edge = True if self.row == ROWS else False
+        self.right_edge = True if self.col == COLS else False
+        self.left_edge = True if self.col == 0 else False
+        self.pawn_value = ''
+        self.direction_of_movement = 1 if self.name == 'N' else -1
+        #self.check_pawn_border_position()
             
     def check_pawn_border_position(self):
         #if the object is a pawn, check if it is in any border except the botom
-
-        if self.row == 0:
-            self.top_edge = True
-        else:
-            self.top_edge = False
+        self.top_edge = True if self.row == 0 else False
+        self.bottom_edge = True if self.row == ROWS else False
+        self.right_edge = True if self.col == COLS else False
+        self.left_edge = True if self.col == 0 else False
         
-        if self.row == ROWS:
-            self.bottom_edge = True
-        else:
-            self.bottom_edge = False
-            
-        if self.col == COLS:
-            self.right_edge = True
-        else:
-            self.right_edge = False
-            
-        if self.col == 0:
-            self.left_edge = True
-        else:
-            self.left_edge = False
-            
 
     def move(self,row,col):
         self.row = row
         self.col = col
         self.check_pawn_border_position()
+        
+    def calculate_score(self):
+        if self.direction_of_movement == -1:
+            #its a 'S' side
+            #self.pawn_value =  2**(8-int((self.row+(self.direction_of_movement*2))/2))
+            self.pawn_value =  2**(8-int(self.row/2))
+        else:
+            #its a 'N' side
+            #self.pawn_value = 2**int((self.row+(self.direction_of_movement*2))/2)
+            self.pawn_value =  2**(int(self.row/2))
     
     def __repr__(self):
         return str(self.name)
@@ -52,10 +47,8 @@ class Wall():
         self.row = row
         self.col = col
         self.name = name
-        self.type = 'wall'
         self.wall_direction = ''
         
-
         if self.name == '-':
             self.wall_direction = 'h'
                 
@@ -64,19 +57,3 @@ class Wall():
     
     def __repr__(self):
         return str(self.name)
-
-class Empty():
-    
-    def __init__(self,row,col,name):
-        self.row = row
-        self.col = col
-        self.name = name
-        self.type = 'empty'
-
-    def move(self,row,col):
-        self.row = row
-        self.col = col
-
-    def __repr__(self):
-        return str(self.name)
-        
