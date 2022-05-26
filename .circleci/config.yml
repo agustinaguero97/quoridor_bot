@@ -10,7 +10,7 @@ jobs:
       - run:
           command: sudo apt install python3-pip
       - run:
-          command: pip install parameterized
+          command: pip3 install parameterized
   test:
     working_directory: ~/circleci-python
     docker:
