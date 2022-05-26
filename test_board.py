@@ -1088,7 +1088,7 @@ class TestBoard(unittest.TestCase):
             [' ',' ',' ','*',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],#13
             ['N',' ','N','|','N',' ',' ',' ',' ',' ',' ',' ',' ',' ','N',' ','S'],#14
             [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '],#15
-            [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']],'N',4),
+            [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']],'N',2),
             #the last one its also counting the 2 lateral wall of pass moves, thats why is 4 not 2
         ])
     def test_check_side_movement(self,list_of_list,side,expected_count):
