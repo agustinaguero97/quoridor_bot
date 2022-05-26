@@ -1,7 +1,4 @@
 version: 2.1
-orbs:
-  python: circleci/python@2.0.3
-  heroku: circleci/heroku@1.2.6
 
 jobs:
   build:
@@ -13,7 +10,7 @@ jobs:
       - python/install-packages:
           pkg-manager: pip
       - run:
-          command: sudo apt-get install python3-pip python3-dev build-essential
+          command: pip install --upgrade pip
       - run: pip install parameterized
   test:
     working_directory: ~/circleci-python
