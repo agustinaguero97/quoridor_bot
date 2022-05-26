@@ -7,7 +7,8 @@ jobs:
       - image: "circleci/python:3.6.4"
     steps:
       - checkout
-      - run: pip install -r requirements.txt
+      - run: pip install --upgrade pip
+      - run: pip install parameterized
   test:
     working_directory: ~/circleci-python
     docker:
