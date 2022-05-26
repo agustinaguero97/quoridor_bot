@@ -7,8 +7,6 @@ jobs:
       - image: "circleci/python:3.6.4"
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: pip
       - run:
           command: pip install --upgrade pip
       - run: pip install parameterized
