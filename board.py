@@ -271,11 +271,12 @@ class Board():
             return
         self.actual_row = self.new_row = pawn.row
         self.actual_col = pawn.col
-        self.wall_of_pass(pawn.row,col,direction)
+        #self.wall_of_pass(pawn.row,col,direction)
         self.score = self.side_score(self.actual_row)+1
         self.record_a_movement()
     
     #dont know if this truly works
+    #this should put a vertical wall to avoid being bloqued by an horizontal wall
     def wall_of_pass(self,row,col,direction):
         if self.walls == 0:
             return
@@ -365,7 +366,7 @@ class Board():
         self.score = self.side_score(piece_to_jump.row)
         self.record_a_movement()
     
-    
+    #will only back if has no movement o wall placement available
     def no_movements(self):
         if self.dic_of_posible_movements != {}:
             return
