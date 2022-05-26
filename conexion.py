@@ -36,7 +36,7 @@ class Connection():
 
     async def check_the_data_received(self,ws):
         while True:
-            #time.sleep(1)
+            # time.sleep(1)
             try:
                 #the time it takes to receive something its absurd some times
                 print("waiting")
@@ -69,6 +69,7 @@ class Connection():
                     board = Board(bot.walls,bot.side,bot.board_string)
                     board.create_board()
                     board.populates_board()
+                    bot.info_printer()
                     board.board_printer()
                     board.posible_pawn_movements()
                     board.posible_wall_placement()

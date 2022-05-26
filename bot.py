@@ -17,54 +17,51 @@ class Bot():
         self.data = {}
         self.action = ''
         self.dic_of_posible_movements = {}
+        self.best_mov = {}
+    
+    
+    def info_printer(self):
         print(f"remaining turns: {self.remaining_moves}")
         print(self.player_1,self.score_1)
         print(self.player_2,self.score_2)
         print(f"my side: {self.side}")
         
-        
     def chose_movement(self):
         max = -inf
-        best_mov = ""
         #list_of_best_moves = []
         for k1,v1 in self.dic_of_posible_movements.items():
             if max < v1['score']:
                 max = v1['score']
-                best_mov = v1
+                self.best_mov = v1
         #for k1,v1 in self.dic_of_posible_movements.items():
         #    if v1['score'] == max:
         #        list_of_best_moves.append(v1)
         #if len(list_of_best_moves) > 1:
         #    best_mov =random.choice(list_of_best_moves)
-                
-
-        if best_mov['action'] == 'wall':
+        
+        
+    def make_movement(self):
+        if self.best_mov['action'] == 'wall':
             self.action = 'wall'
             self.data = {'game_id':self.game_id,
                         'turn_token': self.turn_token,
-                        'row': (best_mov['row'])/2,
-                        'col': (best_mov['col'])/2,
-                        'orientation': best_mov['orientation'],
+                        'row': (self.best_mov['row'])/2,
+                        'col': (self.best_mov['col'])/2,
+                        'orientation': self.best_mov['orientation'],
                 }
-            print (f"wall in ({best_mov['row']},{(best_mov['col'])}) {best_mov['orientation']}")
-            return
+            print (f"wall in ({self.best_mov['row']},{(self.best_mov['col'])}) {self.best_mov['orientation']}")
+            return {'action':self.action, 'data': self.data}
         
-        if best_mov['action'] == 'move':
-            
-            
+        elif self.best_mov['action'] == 'move':
             self.data = {'game_id':self.game_id,
                         'turn_token': self.turn_token,
-                        'from_row': best_mov['actual_row']/2,
-                        'from_col': best_mov['actual_col']/2,
-                        'to_row': best_mov['new_row']/2,
-                        'to_col': best_mov['new_col']/2,}
+                        'from_row': self.best_mov['actual_row']/2,
+                        'from_col': self.best_mov['actual_col']/2,
+                        'to_row': self.best_mov['new_row']/2,
+                        'to_col': self.best_mov['new_col']/2,}
             self.action = 'move'
-            print(f"from  ({best_mov['actual_row']},{best_mov['actual_col']}) to ({best_mov['new_row']},{best_mov['new_col']})")
-
-    def make_movement(self):
-        return {'action':self.action, 'data': self.data}
-
-        
+            print(f"from  ({self.best_mov['actual_row']},{self.best_mov['actual_col']}) to ({self.best_mov['new_row']},{self.best_mov['new_col']})")
+            return {'action':self.action, 'data': self.data}
     
 if __name__ == '__main__':
     data = {
@@ -75,11 +72,9 @@ if __name__ == '__main__':
         "score_2": -20.0,
         "player_1": "enzocrespillo@gmail.com",
         "score_1": 9.0,
-        "side": "S",
+        "side": "N",
         "turn_token": "d54c5620-ba0d-4703-8858-bcf1146eadb2",
         "game_id": "a27c7f1e-cd8c-11ec-aef0-7ecdf393f9cc"}
-    
-    
     bot = Bot(data)
     board = Board(bot.walls,bot.side,bot.board_string)
     board.create_board()
@@ -88,9 +83,11 @@ if __name__ == '__main__':
     board.posible_pawn_movements()
     board.posible_wall_placement()
     bot.dic_of_posible_movements = board.dic_of_posible_movements
+    
+        
     bot.chose_movement()
     bot.make_movement()
-    
+    print(bot.best_mov)
     del board
     del bot
 

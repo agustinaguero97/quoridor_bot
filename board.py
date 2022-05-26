@@ -55,22 +55,27 @@ class Board():
     def foward_score(self,row):
         if self.direction_of_movement == -1:
             #its a 'S' side
-            if not row== 0:
+            if not row+(self.direction_of_movement*2) == 0:
                 return  2**(8-int((row+(self.direction_of_movement*2))/2))
             return 999
         else:
             #its a 'N' side
             if not row+(self.direction_of_movement*2) == 16:
-                return 2**int((row+(self.direction_of_movement*2))/2)
+                return 2**(int((row+(self.direction_of_movement*2))/2))
             return 999
     
     
     def side_score(self,row):
         if self.direction_of_movement == -1:
+            
             #'S'
+            if row == 16:
+                return 1
             return (8-int((row)/2))
         else:
             #'N'
+            if row == 0:
+                return 1
             return (int((row)/2))
     
     
@@ -81,7 +86,7 @@ class Board():
     
     #all the best posible placements for walls 
     def posible_wall_placement(self):
-        if int(self.walls) == 0:
+        if self.walls == 0:
             return
         for pawn in self.opponent_pawns:
             if pawn.right_edge == False:
@@ -155,7 +160,8 @@ class Board():
                                                     'new_col':self.new_col,
                                                     'score':self.score,
                                                     'action':'move'}
-    
+        
+        
     #all posible movements for my side
     def posible_pawn_movements(self):
         for pawn in self.my_pawns:
@@ -183,6 +189,9 @@ class Board():
                 self.check_diagonal_mov(pawn,direction=1)
             return
         #if the pawn space is empty
+        #will not move to a space that is sorrounded by walls
+        if self.move_to_confinement(row+(self.direction_of_movement*2),col):
+            return
         self.actual_row = row
         self.actual_col = self.new_col = col
         self.new_row= row+(self.direction_of_movement*2)
@@ -190,6 +199,13 @@ class Board():
         self.count += 1
         self.record_a_movement()
     
+    def move_to_confinement(self,row,col):
+        if row == 0 or row == 16:
+            return
+        test_space = Pawn(row,col,self.side,self.board)
+        if test_space.front_wall and test_space.left_wall and test_space.right_wall:
+            return True
+        
     
     def check_diagonal_mov(self,pawn,direction):
         piece = self.get_piece(pawn.row+(self.direction_of_movement*2),pawn.col)
@@ -255,8 +271,32 @@ class Board():
             return
         self.actual_row = self.new_row = pawn.row
         self.actual_col = pawn.col
+        self.wall_of_pass(pawn.row,col,direction)
         self.score = self.side_score(self.actual_row)+1
         self.record_a_movement()
+    
+    #dont know if this truly works
+    def wall_of_pass(self,row,col,direction):
+        if self.walls == 0:
+            return
+        col_to_check = col+(direction*2)
+        if not(row == 2 or row == 14):
+            return
+        if col_to_check== 0 or col_to_check == 16:
+            return
+        if not self.check_if_space_is_empty(row+self.direction_of_movement,col_to_check+direction):
+            return
+        if not self.check_if_space_is_empty(row,col_to_check+direction):
+            return
+        if not self.check_if_space_is_empty(row-self.direction_of_movement,col_to_check+direction):
+            return
+        self.count += 1
+        self.wall_row = 0 if self.side == 'S' else 14
+        self.wall_col = col_to_check-2 if direction == -1 else col_to_check
+        self.orientation = 'v'
+        self.wall_score = 990
+        self.record_a_wall()
+
     
     
     #ONLY consider a foward diagonal side movement, never check for backwards diagonal side movement
@@ -334,13 +374,13 @@ class Board():
     
     
     def back_move(self,row,col,pawn):
-        if row == 0 or row == 16:
+        if pawn.top_edge or pawn.bottom_edge:
             return
         if pawn.back_wall:
             return
         if not self.check_if_space_is_empty(row-(self.direction_of_movement*2),col):
             return
-        self.actual_row = pawn.row
+        self.actual_row = row
         self.actual_col = self.new_col = col
         self.new_row = row-(self.direction_of_movement*2)
         self.score = -row
@@ -349,7 +389,15 @@ class Board():
 
 
 if __name__ == '__main__':
-    tablero='                       -*- -*- -*-             | |         -*-  * *        | |   | |        * *              | |                                             -*-                                                                                N                               S S              '
+    #tablero='                       -*- -*- -*-             | |         -*-  * *        | |   | |        * *              | |                                             -*-                                                                                N                               S S              '
+    #tablero = '                 -*- -*-                S|           -*-  *          |     |          *                |                                 |                *                |N     N     N    -*- -*- -*- -*-                                                       -*- -*-          S         S  '
+    #tablero = '                 -*- -*-                S|           -*-  *          |     |          *                |                                 |                *                |N     N     N    -*- -*- -*- -*-                                                       -*- -*-          S         S  '
+    #tablero='                   -*- -*-             |  S|         -*-*   *        |   |   |        *                |                                 |N               *                |      N     N    -*- -*- -*- -*-                 -*- -*- -*- -*-  S                -*-              S                '
+    #tablero='                                                                       |     |     | -*-*  -*-*  -*-*   S|    S|    S|                            N                    -*-  N|       |     -*-*-*-    *        |N      |         -*- -*- -*-                                                     '
+    #tablero= '                                                                       |     |     | -*-*  -*-*  -*-*   S|    S|    S|                            N                    -*-  N|       |     -*-*-*-    *        |N      |         -*- -*- -*-                                                     '
+    #tablero="                       -*-   -*-       |    N     N     *    -*- -*-     |                 -*-        N      |           -*-  *                |         -*- -*-                                 -*-                           -*-   -*-   -*-                                    S           S S"
+    #tablero='                       -*- -*-         |  S|            *   *            |   |                               |S  |            *   *            |   |                                                                             -*- -*-             |N   S N N       *  -*- -*-       |         '
+    tablero= '  N     N                         S|                *                |                                 |                *                |                                 |N               *                |                 -*- -*- -*- -*-                                              S S  '
     muros = 10.0
     lado = 'N'
     score_1 = 20
