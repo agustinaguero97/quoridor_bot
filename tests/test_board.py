@@ -1,7 +1,7 @@
 
 from board import Board
 import unittest
-from stringifier import stringifier
+from tests.stringifier import stringifier
 from parameterized import parameterized
 
 
