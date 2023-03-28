@@ -17,11 +17,7 @@ jobs:
       - run: pip install parameterized
       - run:
           # This assumes pytest is installed via the install-package step above
-          command: python3 test_board.py
-      - run:
-          command: python3 test_piece.py
-      - run:
-          command: python3 test_bot.py
+          command: python3 -m unittest discover
 
 workflows:
   sample: # This is the name of the workflow, feel free to change it to better match your workflow.
