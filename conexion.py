@@ -1,29 +1,49 @@
-
-import argparse,websockets,asyncio,json,time
-#import the board
-from board import Board
+import argparse
+import websockets
+import asyncio
+import json
+import time
+# import the board
+# from board import Board
 from bot import Bot
+from constants.constants import (
+    PLATFORM_WS,
+    CHALLENGE,
+    ACCEPT_CHALLENGE,
+    CHALLENGE_ID,
+    LIST_USER,
+    YOUR_TURN,
+    GAME_OVER,
+    UPDATE_USER_LIST,
+    DATA,
+    GAME_ID,
+    EVENT,
+    ACTION,
+    USERS,
+)
 
 
-#the token enter as an argument returns it as a variable
+# the token enter as an argument returns it as a variable
 def token_parser():
-    parser = argparse.ArgumentParser(description='Process the token [-h HELP] [-t TOKEN].')
-    parser.add_argument('-t', '--token',
-                        metavar='TOKEN', 
-                        type=str,
-                        required=True,
-                        help='enter your token as an argument to iniciate the connection')
+    parser = argparse.ArgumentParser(
+        description='Process the token [-h HELP] [-t TOKEN].'
+        )
+    parser.add_argument(
+        '-t', '--token',
+        metavar='TOKEN',
+        type=str,
+        required=True,
+        help='enter your token as an argument to iniciate the connection')
     args = parser.parse_args()
     token = args.token
     return token
 
 
 class Connection():
-    def __init__(self,player_token):
-        self.url_to_connect = f"wss://4yyity02md.execute-api.us-east-1.amazonaws.com/ws?token={player_token}"
+    def __init__(self, player_token):
+        self.url_to_connect = PLATFORM_WS + str(player_token)
         self.my_answer = {}
         self.request = {}
-
 
     async def start_the_connection(self):
         while True:
@@ -33,75 +53,67 @@ class Connection():
             except Exception as e:
                 print(f"connection error: {e}")
 
-
-    async def check_the_data_received(self,ws):
+    async def check_the_data_received(self, ws):
         while True:
             # time.sleep(1)
             try:
-                #the time it takes to receive something its absurd some times
+                # the time it takes to receive something its absurd some times
                 print("waiting")
                 recv_sta = time.time()
                 self.request = await ws.recv()
                 recv_end = time.time()
-                print(f"\ntime for receive something: {recv_end-recv_sta}")
-                
-                #convert the string self.request to a json and put it in request_data
-                request_data =json.loads(self.request)
-                
-                #logic for acept a challenge
-                if request_data['event'] == 'challenge':
+                print(f"\ntime for receive something: {recv_end - recv_sta}")
+
+                # convert the string self.request to a json
+                # and put it in request_data
+                request_data = json.loads(self.request)
+
+                # logic for acept a challenge
+                if request_data[EVENT] == CHALLENGE:
                     self.my_answer = {
-                                        'action': 'accept_challenge',
-                                        'data': {
-                                                'challenge_id': request_data['data']['challenge_id'] 
-                                        }
+                        ACTION: ACCEPT_CHALLENGE,
+                        DATA: {
+                            CHALLENGE_ID: request_data[DATA][CHALLENGE_ID]
+                                }
                     }
                     await conexion.send_data(ws)
-                    
-                elif request_data['event'] == 'list_users':
-                    print(f"\nusers connected:::{request_data['data']['users']}:::")
-                    
-                #logic for make a movement 
-                elif request_data['event'] == 'your_turn':
+
+                elif request_data[EVENT] == LIST_USER:
+                    print(
+                        f"\nusers connected:{request_data[DATA][USERS]}:"
+                        )
+
+                # logic for make a movement
+                elif request_data[EVENT] == YOUR_TURN:
                     play_sta = time.time()
-                    
-                    bot = Bot(request_data['data'])
-                    board = Board(bot.walls,bot.side,bot.board_string)
-                    board.create_board()
-                    board.populates_board()
-                    bot.info_printer()
-                    board.board_printer()
-                    board.posible_pawn_movements()
-                    board.posible_wall_placement()
-                    board.no_movements()
-                    bot.dic_of_posible_movements = board.dic_of_posible_movements
-                    bot.chose_movement()
-                    self.my_answer=bot.make_movement()
-                    del board,bot
-                    
+
+                    bot = Bot(request_data[DATA])
+                    self.my_answer = bot.bot_main_logic()
+                    del bot
+
                     play_end = time.time()
-                    print(f"time for make a play: {play_end-play_sta}")
-                    
+                    print(f"time for make a play: {play_end - play_sta}")
+
                     await conexion.send_data(ws)
-                    
-                elif request_data['event'] == 'game_over':
-                    print(f"\ngame over,ID: {request_data['data']['game_id']}")
-                    
-                elif request_data['event'] == 'update_user_list':
-                    print(f"\nupdate:::{request_data['data']}:::")
-                
+
+                elif request_data[EVENT] == GAME_OVER:
+                    print(f"\ngame over,ID: {request_data[DATA][GAME_ID]}")
+
+                elif request_data[EVENT] == UPDATE_USER_LIST:
+                    print(f"\nupdate:::{request_data[DATA]}:::")
+
                 else:
                     print(self.request)
             except Exception as e:
                 print(f"{e}")
                 break
 
-
-    #logic where i send the data to the server, where i accept a challenge or make a movement     
-    async def send_data(self,ws):
-        answer = json.dumps({
-                            'action': self.my_answer['action'],
-                            'data': self.my_answer['data'],})
+    # logic where i send the data to the server,
+    # where i accept a challenge or make a movement
+    async def send_data(self, ws):
+        answer = json.dumps(
+                            self.my_answer
+                            )
         print(answer)
         await ws.send(answer)
 
@@ -109,5 +121,6 @@ class Connection():
 if __name__ == '__main__':
     player_token = token_parser()
     conexion = Connection(player_token)
-    asyncio.get_event_loop().run_until_complete(conexion.start_the_connection())
-
+    asyncio.get_event_loop().run_until_complete(
+        conexion.start_the_connection()
+        )

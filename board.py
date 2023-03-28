@@ -1,7 +1,9 @@
-from piece import  Pawn
+from piece import Pawn
+
 
 class Board():
-    def __init__(self,walls,side,board_string):
+
+    def __init__(self, walls, side, board_string):
         self.walls = walls
         self.side = side
         self.board_string = board_string
@@ -11,18 +13,17 @@ class Board():
         self.dic_of_posible_movements = {}
         self.direction_of_movement = 1 if self.side == 'N' else -1
         self.count = 0
-        self.actual_row,self.actual_col = '',''
-        self.new_row,self.new_col = '', ''
+        self.actual_row, self.actual_col = '', ''
+        self.new_row, self.new_col = '', ''
         self.score = 0
-        self.wall_row,self.wall_col = '',''
+        self.wall_row, self.wall_col = '', ''
         self.orientation = ''
         self.wall_score = ''
-    
-    
+
     def create_board(self):
-        #take the string board and transform every element including spaces in elements of a list
+        # take the string board and transform every element including spaces in elements of a list
         board_string_to_list = [e for e in self.board_string]
-        #transform the elements of the previous list into a 17x17 matrix
+        # transform the elements of the previous list into a 17x17 matrix
         self.board = [board_string_to_list[i:i+17] for i in range(0,len(board_string_to_list),17)]
     
     
