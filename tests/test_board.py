@@ -5,7 +5,6 @@ from tests.stringifier import stringifier
 from parameterized import parameterized
 
 
-
 class TestBoard(unittest.TestCase):
     
     def test_create_board(self):
@@ -28,14 +27,14 @@ class TestBoard(unittest.TestCase):
                         [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '], #15
                         [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']] #16
         board_string = stringifier(testing_board)
-        board = Board(None,None,board_string)
+        board = Board(None, None, board_string)
         board.create_board()
-        self.assertEqual(len(board_string),289)
-        self.assertEqual(str(type(board.board)),"<class 'list'>")
-        self.assertEqual(board.board,testing_board)
-        
-        
-        
+        self.assertEqual(len(board_string), 289)
+        self.assertEqual(str(type(board.board)), "<class 'list'>")
+        self.assertEqual(board.board, testing_board)
+
+
+
     @parameterized.expand([
         (  [[' ',' ',' ',' ',' ',' ',' ',' ','N',' ',' ',' ',' ',' ',' ',' ','N'],
             [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','-','*','-'], 
